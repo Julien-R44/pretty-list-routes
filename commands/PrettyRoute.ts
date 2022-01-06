@@ -65,8 +65,19 @@ export default class PrettyRoutes extends BaseCommand {
   }
 
   private outputList(router: RouterContract) {
-    // TODO: add domains
-    let routes = this.routerToJson(router).root
+    /**
+     * Let's flatten routes splitted in different domains
+     * in one single array with domain along each route
+     */
+    let routes = Object.entries(this.routerToJson(router))
+      .map(([domain, domainRoutes]) =>
+        domainRoutes.map((route) => ({
+          ...route,
+          domain,
+        }))
+      )
+      .flat()
+
     const termWidth = this.getTerminalWidth()
 
     if (this.reverse) routes = routes.reverse()
@@ -78,17 +89,20 @@ export default class PrettyRoutes extends BaseCommand {
 
     routes.forEach((route) => {
       const methods = route.methods.join('|')
+      const pattern = route.domain !== 'root' ? `${route.domain}${route.pattern}` : route.pattern
+      let nameAndHandler = route.name ? ` ${route.name} ⇒ ${route.handler}` : ` ${route.handler}`
 
       /**
        * Spaces needed to align the start of route patterns
        */
       const spaces = ' '.repeat(Math.max(maxMethodsLength + 5 - methods.length, 0))
 
-      let nameAndHandler = route.name ? ` ${route.name} ⇒ ${route.handler}` : ` ${route.handler}`
-      const totalLength = (methods + spaces + route.pattern + ' ' + nameAndHandler).length
-
+      /**
+       * If name and handler output is too long we crop it
+       */
+      const totalLength = (methods + spaces + pattern + ' ' + nameAndHandler).length
       if (totalLength > termWidth) {
-        const lenWithoutNameAndHandler = (methods + spaces + route.pattern + ' ').length
+        const lenWithoutNameAndHandler = (methods + spaces + pattern + ' ').length
         nameAndHandler = nameAndHandler.substring(0, termWidth - lenWithoutNameAndHandler - 1) + '…'
       }
 
@@ -104,7 +118,7 @@ export default class PrettyRoutes extends BaseCommand {
         })
         .join('\n')
 
-      this.outputRoute(route.methods, spaces, route.pattern, dots, nameAndHandler, middlewares)
+      this.outputRoute(route.methods, spaces, pattern, dots, nameAndHandler, middlewares)
     })
   }
 
