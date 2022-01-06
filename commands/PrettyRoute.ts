@@ -1,8 +1,16 @@
 import { BaseCommand, flags } from '@adonisjs/core/build/standalone'
 import type { RouterContract } from '@ioc:Adonis/Core/Route'
 
+interface Route {
+  methods: string[]
+  name: string
+  pattern: string
+  handler: string
+  middleware: string[]
+}
+
 /**
- * node ace list:routes but pretty
+ * `list:routes` but prettier
  */
 export default class PrettyRoutes extends BaseCommand {
   public static commandName = 'routes:pretty-list'
@@ -65,26 +73,8 @@ export default class PrettyRoutes extends BaseCommand {
   }
 
   private outputList(router: RouterContract) {
-    /**
-     * Let's flatten routes splitted in different domains
-     * in one single array with domain along each route
-     */
-    let routes = Object.entries(this.routerToJson(router))
-      .map(([domain, domainRoutes]) =>
-        domainRoutes.map((route) => ({
-          ...route,
-          domain,
-        }))
-      )
-      .flat()
-
     const termWidth = this.getTerminalWidth()
-
-    if (this.reverse) routes = routes.reverse()
-    if (this.methodFilter) {
-      routes = routes.filter((route) => route.methods.includes(this.methodFilter.toUpperCase()))
-    }
-
+    const routes = this.createRoutesArrayBasedOnFilters(router)
     const maxMethodsLength = Math.max(...routes.map((route) => route.methods.join('|').length)) - 1
 
     routes.forEach((route) => {
@@ -149,6 +139,47 @@ export default class PrettyRoutes extends BaseCommand {
   }
 
   /**
+   * Create the route array on which we will iterate for the
+   * rendering, filtered according to the flags selected by the user
+   */
+  private createRoutesArrayBasedOnFilters(router: RouterContract): (Route & { domain: string })[] {
+    /**
+     * Let's flatten routes splitted in different domains
+     * in one single array with domain along each route
+     */
+    let routes = Object.entries(this.routerToJson(router))
+      .map(([domain, domainRoutes]) =>
+        domainRoutes.map((route) => ({
+          ...route,
+          domain,
+        }))
+      )
+      .flat()
+
+    if (this.reverse) {
+      routes = routes.reverse()
+    }
+
+    if (this.methodFilter) {
+      routes = routes.filter((route) => route.methods.includes(this.methodFilter.toUpperCase()))
+    }
+
+    if (this.pathFilter) {
+      routes = routes.filter((route) =>
+        route.pattern.toUpperCase().includes(this.pathFilter.toUpperCase())
+      )
+    }
+
+    if (this.nameFilter) {
+      routes = routes.filter((route) =>
+        route.name.toUpperCase().includes(this.nameFilter.toUpperCase())
+      )
+    }
+
+    return routes
+  }
+
+  /**
    * Stolen code from @adonisjs/core/commands/ListRoutes.ts
    */
   private log(message: string) {
@@ -166,13 +197,7 @@ export default class PrettyRoutes extends BaseCommand {
     const routes = router.toJSON()
 
     return Object.keys(routes).reduce<{
-      [domain: string]: {
-        methods: string[]
-        name: string
-        pattern: string
-        handler: string
-        middleware: string[]
-      }[]
+      [domain: string]: Route[]
     }>((result, domain) => {
       result[domain] = routes[domain].map((route) => {
         let handler: string = 'Closure'
