@@ -4,7 +4,7 @@
   "description": "🛣️ A beautiful `list:routes` for AdonisJS",
   "main": "index.js",
   "files": [
-    "build/commands/PrettyRoute.js"
+    "build/commands"
   ],
   "scripts": {
     "pretest": "npm run lint",
