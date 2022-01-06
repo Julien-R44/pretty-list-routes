@@ -7,7 +7,7 @@
 # Installation
 ```
 npm install pretty-list-routes
-node ace configure pretty-list-rouges
+node ace configure pretty-list-routes
 ```
 
 # Usage
