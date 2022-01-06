@@ -16,7 +16,7 @@
     "build": "npm run compile",
     "prepublishOnly": "npm run build",
     "format": "prettier --write .",
-    "release": "np --message=\"chore(release): %s\"",
+    "release": "np --message=\"🔖 bumped to %s\"",
     "version": "npm run build"
   },
   "author": "Julien Ripouteau <julien@ripouteau.com>",
