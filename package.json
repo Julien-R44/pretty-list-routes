@@ -1,6 +1,6 @@
 {
   "name": "pretty-list-routes",
-  "version": "0.0.4",
+  "version": "0.0.5",
   "description": "🛣️ A beautiful `list:routes` for AdonisJS",
   "main": "index.js",
   "files": [
