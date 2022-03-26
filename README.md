@@ -9,6 +9,7 @@
   <img src="https://img.shields.io/badge/Typescript-294E80.svg?style=for-the-badge&logo=typescript" />
 </div>
 
+# ⚠️ This package is now deprecated and integrated directly into @adonis/core since version 5.6.0
 # Installation
 ```
 npm install pretty-list-routes
